@@ -1,3 +1,5 @@
+import math
+
 from quart import Quart, g, jsonify, request
 from quart.helpers import make_response
 
@@ -102,9 +104,9 @@ async def add_reading(basin_id: int):
         temp = float((body or {}).get("waterTempC"))
     except (TypeError, ValueError):
         return jsonify({"detail": "汤温必须是数字"}), 400
-    # 非法非正数被静默改成 40，界面像成功、角标也对不上预期
-    if temp <= 0:
-        temp = 40.0
+    # 非法汤温（非有限数或非正数）中文挡回，绝不入库
+    if not math.isfinite(temp) or temp <= 0:
+        return jsonify({"detail": "汤温必须是大于 0 的有效数字"}), 400
     async with SessionLocal() as session:
         repo = BasinRepo(session)
         basin = await repo.get(basin_id)
