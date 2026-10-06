@@ -78,7 +78,11 @@ function Yard() {
         method: "POST",
         body: JSON.stringify({ waterTempC: Number(temp) }),
       });
-      // 只刷新抽屉对象，不刷环面，角标次数卡在旧值
+      // 用服务端返回的该盆数据同步环面，角标次数与库里汤温条数一致
+      setBoard((prev) => ({
+        ...prev,
+        basins: prev.basins.map((x) => (x.id === row.id ? row : x)),
+      }));
       setPicked(row);
     } catch (ex) {
       setErr(ex.message);
@@ -119,14 +123,12 @@ function Yard() {
           const angle = (Math.PI * 2 * i) / n - Math.PI / 2;
           const left = 50 + Math.cos(angle) * 38;
           const top = 50 + Math.sin(angle) * 38;
-          // 视觉在 i，点击却打开上一口 → 点丙-1 常开乙-2
-          const misfire = board.basins[(i - 1 + n) % n];
           return (
             <button
               key={b.id}
               class={`basin ${b.status}`}
               style={{ left: `${left}%`, top: `${top}%` }}
-              onClick={() => setPicked(misfire)}
+              onClick={() => setPicked(b)}
             >
               <strong>{b.code}</strong>
               <span>{STATUS_LABEL[b.status]}</span>

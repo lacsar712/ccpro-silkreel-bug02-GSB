@@ -102,9 +102,9 @@ async def add_reading(basin_id: int):
         temp = float((body or {}).get("waterTempC"))
     except (TypeError, ValueError):
         return jsonify({"detail": "汤温必须是数字"}), 400
-    # 非法非正数被静默改成 40，界面像成功、角标也对不上预期
+    # 非法汤温中文挡住，直接返回、不开库不写记录
     if temp <= 0:
-        temp = 40.0
+        return jsonify({"detail": "汤温必须是正数"}), 400
     async with SessionLocal() as session:
         repo = BasinRepo(session)
         basin = await repo.get(basin_id)
